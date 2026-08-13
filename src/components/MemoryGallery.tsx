@@ -3,12 +3,68 @@ import { motion } from 'framer-motion'
 const HERO_IMAGE = '/Futuristic Arena and Golden Android Statue.png'
 
 const frames = [
-  { id: 1, pos: '20% 30%', tall: true, rotate: -1.5, meta: 'MEMORY 01', time: '00:42 AM' },
-  { id: 2, pos: '70% 50%', tall: false, rotate: 1, meta: 'MEMORY 02', time: '01:05 AM' },
-  { id: 3, pos: '50% 10%', tall: true, rotate: -0.5, meta: 'MEMORY 03', time: '01:48 AM' },
-  { id: 4, pos: '35% 70%', tall: false, rotate: 1.5, meta: 'MEMORY 04', time: '02:17 AM' },
-  { id: 5, pos: '80% 20%', tall: true, rotate: -1, meta: 'MEMORY 05', time: '03:02 AM' },
-  { id: 6, pos: '10% 60%', tall: false, rotate: 0.5, meta: 'MEMORY 06', time: '04:11 AM' },
+  {
+    id: 1,
+    src: HERO_IMAGE,
+    fit: 'cover' as const,
+    pos: '20% 30%',
+    tall: true,
+    rotate: -1.5,
+    label: 'Europe · After Hours Til Dawn',
+    tag: 'Live',
+    meta: 'Memory 01',
+  },
+  {
+    id: 2,
+    src: '/tours/after-hours-til-dawn.jpeg',
+    fit: 'contain' as const,
+    tall: false,
+    rotate: 1,
+    label: 'After Hours Til Dawn Tour',
+    tag: 'Leg 01 · North America',
+    meta: '2022',
+  },
+  {
+    id: 3,
+    src: '/tours/starboy-legend-of-the-fall.png',
+    fit: 'contain' as const,
+    tall: true,
+    rotate: -0.5,
+    label: 'Starboy: Legend Of The Fall',
+    tag: 'Tour Poster',
+    meta: '2016',
+  },
+  {
+    id: 4,
+    src: '/tours/madness-fall-tour.png',
+    fit: 'contain' as const,
+    tall: false,
+    rotate: 1.5,
+    label: 'The Madness Fall Tour',
+    tag: 'Tour Poster',
+    meta: '2015',
+  },
+  {
+    id: 5,
+    src: '/tours/asia-tour.jpg',
+    fit: 'contain' as const,
+    tall: true,
+    rotate: -1,
+    label: 'The Weeknd Asia Tour',
+    tag: 'Tour Poster',
+    meta: '2018',
+  },
+  {
+    id: 6,
+    src: HERO_IMAGE,
+    fit: 'cover' as const,
+    pos: '75% 45%',
+    tall: false,
+    rotate: 0.5,
+    label: 'Europe · After Hours Til Dawn',
+    tag: 'Live',
+    meta: 'Memory 06',
+  },
 ]
 
 export default function MemoryGallery() {
@@ -22,7 +78,7 @@ export default function MemoryGallery() {
         {frames.map((f, i) => (
           <motion.figure
             key={f.id}
-            className={`relative shrink-0 overflow-hidden rounded-sm border border-white/10 ${
+            className={`relative shrink-0 overflow-hidden rounded-sm border border-white/10 bg-black ${
               f.tall ? 'h-80 w-52 md:h-[26rem] md:w-64' : 'h-56 w-72 md:h-72 md:w-96'
             }`}
             style={{ transform: `rotate(${f.rotate}deg)`, marginTop: i % 2 === 0 ? 0 : 24 }}
@@ -32,15 +88,15 @@ export default function MemoryGallery() {
             transition={{ duration: 0.6, delay: i * 0.05 }}
           >
             <img
-              src={HERO_IMAGE}
+              src={f.src}
               alt=""
-              className="h-full w-full object-cover grayscale-[15%] contrast-125 saturate-75"
-              style={{ objectPosition: f.pos }}
+              className={`h-full w-full ${f.fit === 'cover' ? 'object-cover grayscale-[15%] contrast-125 saturate-75' : 'object-contain'}`}
+              style={f.pos ? { objectPosition: f.pos } : undefined}
             />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
             <figcaption className="font-mono-meta absolute bottom-2 left-2 flex flex-col text-[9px] uppercase tracking-[0.15em] text-white/70">
-              <span>Europe · After Hours Til Dawn</span>
-              <span className="text-[#c9862f]">Live · {f.time}</span>
+              <span>{f.label}</span>
+              <span className="text-[#c9862f]">{f.tag}</span>
               <span className="text-white/40">{f.meta}</span>
             </figcaption>
           </motion.figure>

@@ -22,7 +22,6 @@ export default function VibeExplorer({ activeVibe, onSelect }: Props) {
               type="button"
               onClick={() => onSelect(active ? null : vibe.id)}
               className="group relative flex aspect-square flex-col justify-end overflow-hidden rounded-sm p-4 text-left md:p-5"
-              style={{ background: vibe.bg }}
               whileHover={{ scale: 1.015 }}
               animate={{
                 boxShadow: active
@@ -31,10 +30,21 @@ export default function VibeExplorer({ activeVibe, onSelect }: Props) {
               }}
               transition={{ duration: 0.4 }}
             >
-              <span className="font-nav text-base uppercase tracking-[0.15em] text-white md:text-xl">
+              <img
+                src={vibe.artwork}
+                alt=""
+                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+              />
+              <div
+                className="pointer-events-none absolute inset-0"
+                style={{ background: vibe.bg, opacity: active ? 0.55 : 0.8 }}
+              />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+
+              <span className="font-nav relative text-base uppercase tracking-[0.15em] text-white md:text-xl">
                 {vibe.name}
               </span>
-              <span className="font-serif-editorial mt-1 text-xs italic text-white/55 md:text-sm">
+              <span className="font-serif-editorial relative mt-1 text-xs italic text-white/55 md:text-sm">
                 {vibe.tagline}
               </span>
             </motion.button>
