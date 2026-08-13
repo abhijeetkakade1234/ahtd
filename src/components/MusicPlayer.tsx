@@ -37,9 +37,10 @@ export default function MusicPlayer() {
 
       <div className="flex items-center justify-between gap-3 px-4 py-3 md:px-8 md:py-4">
         <div className="flex min-w-0 items-center gap-3 md:gap-4">
-          <div
-            className="h-10 w-10 shrink-0 rounded-sm md:h-12 md:w-12"
-            style={{ background: current.artwork }}
+          <img
+            src={current.artwork}
+            alt=""
+            className="h-10 w-10 shrink-0 rounded-sm object-cover md:h-12 md:w-12"
           />
           <div className="min-w-0">
             <p className="font-serif-editorial truncate text-sm text-white/90 md:text-base">

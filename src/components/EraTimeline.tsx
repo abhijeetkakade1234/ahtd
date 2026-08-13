@@ -27,9 +27,19 @@ export default function EraTimeline({ activeEra, onSelect }: Props) {
               whileHover={{ y: -2 }}
             >
               <span
-                className="h-24 w-32 rounded-sm md:h-32 md:w-44"
-                style={{ background: era.bg, opacity: active ? 1 : 0.55 }}
-              />
+                className="relative block h-24 w-32 overflow-hidden rounded-sm md:h-32 md:w-44"
+                style={{ opacity: active ? 1 : 0.55 }}
+              >
+                <img
+                  src={era.artwork}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
+                <span
+                  className="absolute inset-0"
+                  style={{ background: era.bg, opacity: 0.55, mixBlendMode: 'multiply' }}
+                />
+              </span>
               <span className="font-mono-meta text-[11px] text-white/40">{era.year}</span>
               <span
                 className="font-nav text-sm uppercase tracking-[0.1em] md:text-base"
