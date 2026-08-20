@@ -47,7 +47,7 @@ export default function MusicPlayer() {
       transition={{ delay: 0.3, duration: 0.6 }}
     >
       <div
-        className="group/seek h-[3px] w-full cursor-pointer overflow-hidden bg-white/5 transition-[height] hover:h-[6px]"
+        className="group/seek h-[4px] w-full cursor-pointer overflow-hidden bg-white/5 transition-[height] hover:h-[8px]"
         style={{ boxShadow: isPlaying ? `0 0 8px ${accent}` : 'none' }}
         onClick={(e) => {
           const r = e.currentTarget.getBoundingClientRect()
@@ -72,18 +72,18 @@ export default function MusicPlayer() {
         )}
       </div>
 
-      <div className="flex items-center justify-between gap-3 px-4 py-3 md:px-8 md:py-4">
+      <div className="flex items-center justify-between gap-3 px-4 py-4 md:px-8 md:py-5">
         <div className="flex min-w-0 items-center gap-3 md:gap-4">
           <img
             src={current.artwork}
             alt=""
-            className="h-10 w-10 shrink-0 rounded-sm object-cover md:h-12 md:w-12"
+            className="h-12 w-12 shrink-0 rounded-sm object-cover md:h-16 md:w-16"
           />
           <div className="min-w-0">
-            <p className="font-serif-editorial truncate text-sm text-white/90 md:text-base">
+            <p className="font-serif-editorial truncate text-base text-white/90 md:text-xl">
               {current.title}
             </p>
-            <p className="truncate text-[10px] text-white/40">
+            <p className="truncate text-[11px] text-white/45 md:text-xs">
               {error ? (
                 <span className="text-[#c9862f]">{error}</span>
               ) : isLoading ? (
@@ -104,24 +104,24 @@ export default function MusicPlayer() {
             onClick={() => toggleFavorite(current.id)}
             className="hidden text-white/30 transition-colors hover:text-[#c9862f] sm:block"
           >
-            <Heart size={13} fill={isFavorite(current.id) ? accent : 'none'} color={isFavorite(current.id) ? accent : 'currentColor'} />
+            <Heart size={16} fill={isFavorite(current.id) ? accent : 'none'} color={isFavorite(current.id) ? accent : 'currentColor'} />
           </button>
         </div>
 
-        <div className="flex items-center gap-3 md:gap-5">
+        <div className="flex items-center gap-4 md:gap-7">
           <button type="button" onClick={prev} className="text-white/60 transition-colors hover:text-white">
-            <SkipBack size={16} />
+            <SkipBack size={20} />
           </button>
           <button
             type="button"
             onClick={toggle}
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-white/20 text-white transition-colors hover:border-[color:var(--accent)]"
+            className="flex h-12 w-12 items-center justify-center rounded-full border border-white/25 text-white transition-colors hover:border-[color:var(--accent)] md:h-14 md:w-14"
             style={{ ['--accent' as string]: accent }}
           >
-            {isPlaying ? <Pause size={15} /> : <Play size={15} />}
+            {isPlaying ? <Pause size={20} /> : <Play size={20} className="ml-0.5" />}
           </button>
           <button type="button" onClick={next} className="text-white/60 transition-colors hover:text-white">
-            <SkipForward size={16} />
+            <SkipForward size={20} />
           </button>
         </div>
 
@@ -134,7 +134,7 @@ export default function MusicPlayer() {
               className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.15em] transition-colors hover:text-white"
               style={{ color: pipActive ? accent : 'rgba(255,255,255,0.5)' }}
             >
-              <PictureInPicture2 size={14} />
+              <PictureInPicture2 size={17} />
               <span className="hidden xl:inline">{pipActive ? 'Popped out' : 'Pop out'}</span>
             </button>
           )}
@@ -143,9 +143,9 @@ export default function MusicPlayer() {
             onClick={toggleMute}
             className="text-white/50 transition-colors hover:text-white"
           >
-            {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}
+            {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
           </button>
-          <div className="flex items-center gap-3 text-[10px] uppercase tracking-[0.15em] text-white/40">
+          <div className="flex items-center gap-4 text-[11px] uppercase tracking-[0.15em] text-white/45">
             {sourceLinks.map((s) => {
               const url = current[s.key]
               if (!url) return null

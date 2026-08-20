@@ -148,7 +148,7 @@ export default function GuestPage() {
         <div
           className={
             showDock
-              ? 'fixed bottom-24 right-4 z-40 aspect-video w-[min(420px,calc(100vw-2rem))] overflow-hidden rounded-md border border-white/15 bg-black shadow-[0_30px_80px_-20px_rgba(0,0,0,0.9)] md:bottom-28 md:right-8'
+              ? 'fixed bottom-28 right-4 z-40 aspect-video w-[min(420px,calc(100vw-2rem))] overflow-hidden rounded-md border border-white/15 bg-black shadow-[0_30px_80px_-20px_rgba(0,0,0,0.9)] md:bottom-32 md:right-8'
               : 'pointer-events-none absolute inset-0 overflow-hidden'
           }
         >

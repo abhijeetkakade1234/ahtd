@@ -35,7 +35,7 @@ export default function Home() {
     : 'a starting point. pick a mood above or an era below.'
 
   return (
-    <div className="relative min-h-screen bg-[#060505] pb-24">
+    <div className="relative min-h-screen bg-[#060505] pb-32">
       <motion.div
         className="pointer-events-none fixed inset-0 z-0"
         animate={{ background: `radial-gradient(ellipse at 50% 0%, ${accent}14, transparent 60%)` }}
