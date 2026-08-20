@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion'
 import { Pause, Play, SkipBack, SkipForward, Volume2, VolumeX, Heart } from 'lucide-react'
-import { useState } from 'react'
 import { usePlayer } from '../hooks/usePlayer'
 
 const sourceLinks = [
@@ -10,9 +9,22 @@ const sourceLinks = [
 ]
 
 export default function MusicPlayer() {
-  const { current, isPlaying, toggle, next, prev, accent, toggleFavorite, isFavorite, isGlitching } =
-    usePlayer()
-  const [muted, setMuted] = useState(false)
+  const {
+    current,
+    isPlaying,
+    isLoading,
+    error,
+    muted,
+    progress,
+    toggle,
+    toggleMute,
+    next,
+    prev,
+    accent,
+    toggleFavorite,
+    isFavorite,
+    isGlitching,
+  } = usePlayer()
 
   return (
     <motion.div
@@ -27,12 +39,19 @@ export default function MusicPlayer() {
         className="h-[2px] w-full overflow-hidden bg-white/5"
         style={{ boxShadow: isPlaying ? `0 0 8px ${accent}` : 'none' }}
       >
-        <motion.div
-          className="h-full w-1/3"
-          style={{ background: accent }}
-          animate={{ x: isPlaying ? ['-100%', '400%'] : '-100%' }}
-          transition={{ duration: 3.4, repeat: isPlaying ? Infinity : 0, ease: 'linear' }}
-        />
+        {isLoading ? (
+          <motion.div
+            className="h-full w-1/3"
+            style={{ background: accent }}
+            animate={{ x: ['-100%', '400%'] }}
+            transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
+          />
+        ) : (
+          <div
+            className="h-full transition-[width] duration-200 ease-linear"
+            style={{ background: accent, width: `${progress * 100}%` }}
+          />
+        )}
       </div>
 
       <div className="flex items-center justify-between gap-3 px-4 py-3 md:px-8 md:py-4">
@@ -47,7 +66,13 @@ export default function MusicPlayer() {
               {current.title}
             </p>
             <p className="truncate text-[10px] text-white/40">
-              The Weeknd · {current.album}
+              {error ? (
+                <span className="text-[#c9862f]">{error} · open on Spotify / YouTube →</span>
+              ) : isLoading ? (
+                'Loading preview…'
+              ) : (
+                <>The Weeknd · {current.album} · 30s preview</>
+              )}
             </p>
           </div>
           <button
@@ -79,7 +104,7 @@ export default function MusicPlayer() {
         <div className="hidden items-center gap-4 lg:flex">
           <button
             type="button"
-            onClick={() => setMuted((m) => !m)}
+            onClick={toggleMute}
             className="text-white/50 transition-colors hover:text-white"
           >
             {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}

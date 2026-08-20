@@ -46,10 +46,14 @@ const seeds: Seed[] = [
   { title: 'High For This', album: 'House Of Balloons', year: 2011, era: 'trilogy', vibes: ['2am', 'xo'] },
   { title: 'Wicked Games', album: 'House Of Balloons', year: 2011, era: 'trilogy', vibes: ['heartbreak', '2am'] },
   { title: 'The Morning', album: 'House Of Balloons', year: 2011, era: 'trilogy', vibes: ['2am', 'memories'] },
-  { title: 'House Of Balloons / Glass Table Girls', album: 'House Of Balloons', year: 2011, era: 'trilogy', vibes: ['xo', 'dance'] },
-  { title: 'The Zone', album: 'Thursday', year: 2011, era: 'trilogy', vibes: ['2am', 'drive'] },
-  { title: 'Twenty Eight', album: 'Echoes Of Silence', year: 2011, era: 'trilogy', vibes: ['heartbreak', 'memories'] },
-  { title: 'Rolling Stone', album: 'Echoes Of Silence', year: 2011, era: 'trilogy', vibes: ['xo', 'drive'] },
+  { title: 'What You Need', album: 'House Of Balloons', year: 2011, era: 'trilogy', vibes: ['xo', '2am'] },
+  { title: 'The Knowing', album: 'House Of Balloons', year: 2011, era: 'trilogy', vibes: ['heartbreak', 'memories'] },
+  { title: 'Thursday', album: 'Thursday', year: 2011, era: 'trilogy', vibes: ['2am', 'drive'] },
+  { title: 'Life Of The Party', album: 'Thursday', year: 2011, era: 'trilogy', vibes: ['xo', 'dance'] },
+  { title: 'The Birds Pt. 1', album: 'Thursday', year: 2011, era: 'trilogy', vibes: ['xo', 'dance'] },
+  { title: 'Montreal', album: 'Echoes Of Silence', year: 2011, era: 'trilogy', vibes: ['heartbreak', 'memories'] },
+  { title: 'D.D.', album: 'Echoes Of Silence', year: 2011, era: 'trilogy', vibes: ['xo', 'dance'] },
+  { title: 'Heaven Or Las Vegas', album: 'Thursday', year: 2011, era: 'trilogy', vibes: ['memories', 'drive'] },
 
   // Kiss Land — 2013
   { title: 'Kiss Land', album: 'Kiss Land', year: 2013, era: 'kiss-land', vibes: ['2am', 'xo'] },
