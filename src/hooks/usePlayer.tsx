@@ -11,19 +11,24 @@ import {
 import { tracks, type Track } from '../data/tracks'
 import { eras } from '../data/eras'
 
+type Engine = 'youtube' | 'preview' | 'none'
+
 type PlayerState = {
   current: Track
   isPlaying: boolean
   isLoading: boolean
   error: string | null
+  engine: Engine
   muted: boolean
   progress: number
+  duration: number
   favorites: Set<string>
   activeEra: string | null
   accent: string
   play: (track: Track) => void
   toggle: () => void
   toggleMute: () => void
+  seek: (fraction: number) => void
   next: () => void
   prev: () => void
   surpriseMe: () => Track
@@ -39,7 +44,68 @@ function eraAccent(eraId: string) {
   return eras.find((e) => e.id === eraId)?.accent ?? '#b30f22'
 }
 
-// 30s official previews via the iTunes Search API (no key, CORS-enabled).
+function stepTrack(track: Track, direction: 1 | -1) {
+  const index = tracks.findIndex((t) => t.id === track.id)
+  return tracks[(index + direction + tracks.length) % tracks.length]
+}
+
+/* ------------------------------------------------------------------ */
+/* YouTube IFrame API — full-length official uploads                   */
+/* ------------------------------------------------------------------ */
+
+type YTPlayer = {
+  loadVideoById: (id: string) => void
+  cueVideoById: (id: string) => void
+  playVideo: () => void
+  pauseVideo: () => void
+  seekTo: (seconds: number, allowSeekAhead: boolean) => void
+  mute: () => void
+  unMute: () => void
+  getCurrentTime: () => number
+  getDuration: () => number
+  getPlayerState: () => number
+  destroy: () => void
+}
+type YTNamespace = {
+  Player: new (el: HTMLElement, opts: Record<string, unknown>) => YTPlayer
+  PlayerState: { ENDED: 0; PLAYING: 1; PAUSED: 2; BUFFERING: 3; CUED: 5 }
+}
+declare global {
+  interface Window {
+    YT?: YTNamespace
+    onYouTubeIframeAPIReady?: () => void
+    __ahtdAudio?: HTMLAudioElement
+    __ahtdYT?: YTPlayer
+  }
+}
+
+let ytReady: Promise<YTNamespace> | null = null
+function loadYouTubeApi(): Promise<YTNamespace> {
+  if (ytReady) return ytReady
+  ytReady = new Promise<YTNamespace>((resolve, reject) => {
+    if (window.YT?.Player) return resolve(window.YT)
+    const prev = window.onYouTubeIframeAPIReady
+    window.onYouTubeIframeAPIReady = () => {
+      prev?.()
+      if (window.YT) resolve(window.YT)
+    }
+    const s = document.createElement('script')
+    s.src = 'https://www.youtube.com/iframe_api'
+    s.async = true
+    s.onerror = () => reject(new Error('YouTube API failed to load'))
+    document.head.appendChild(s)
+    window.setTimeout(() => reject(new Error('YouTube API timeout')), 15000)
+  })
+  ytReady.catch(() => {
+    ytReady = null
+  })
+  return ytReady
+}
+
+/* ------------------------------------------------------------------ */
+/* iTunes 30s previews — fallback when a video can't be embedded       */
+/* ------------------------------------------------------------------ */
+
 const previewCache = new Map<string, Promise<string | null>>()
 
 function normalize(s: string) {
@@ -69,12 +135,9 @@ function pickMatch(results: ITunesResult[], title: string): string | null {
 function fetchPreview(track: Track): Promise<string | null> {
   const cached = previewCache.get(track.id)
   if (cached) return cached
-
-  // Try the full title, then each half of "A / B" medley titles.
   const variants = [track.title, ...track.title.split('/').map((s) => s.trim())].filter(
     (v, i, arr) => v && arr.indexOf(v) === i,
   )
-
   const req = (async () => {
     try {
       for (const title of variants) {
@@ -87,49 +150,59 @@ function fetchPreview(track: Track): Promise<string | null> {
       return null
     }
   })()
-
   previewCache.set(track.id, req)
   return req
 }
 
-function stepTrack(track: Track, direction: 1 | -1) {
-  const index = tracks.findIndex((t) => t.id === track.id)
-  return tracks[(index + direction + tracks.length) % tracks.length]
-}
+/* ------------------------------------------------------------------ */
 
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const [current, setCurrent] = useState<Track>(tracks[0])
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [engine, setEngine] = useState<Engine>('none')
   const [muted, setMuted] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [duration, setDuration] = useState(0)
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
   const [activeEra, setActiveEra] = useState<string | null>(null)
   const [isGlitching, setIsGlitching] = useState(false)
+  // Bumped when a YouTube video fails so the sync effect re-runs with the fallback.
+  const [fallbackTick, setFallbackTick] = useState(0)
 
   const audioRef = useRef<HTMLAudioElement | null>(null)
-  const loadedTrackId = useRef<string | null>(null)
+  const ytRef = useRef<YTPlayer | null>(null)
+  const ytCreating = useRef<Promise<YTPlayer> | null>(null)
+  const ytFailed = useRef<Set<string>>(new Set()) // track ids whose video can't embed
+  const loadedKey = useRef<string | null>(null) // `${engine}:${trackId}` currently loaded
+  const currentRef = useRef(current)
+  currentRef.current = current
   const isPlayingRef = useRef(false)
   isPlayingRef.current = isPlaying
+  const mutedRef = useRef(false)
+  mutedRef.current = muted
   const skipStreak = useRef(0)
   const skipTimer = useRef<number | null>(null)
 
-  // One shared audio element for the app lifetime.
+  const advance = useCallback(() => {
+    setProgress(0)
+    setCurrent((t) => stepTrack(t, 1))
+    setIsPlaying(true)
+  }, [])
+
+  /* ---------- <audio> for previews ---------- */
   useEffect(() => {
     const audio = new Audio()
     audio.preload = 'auto'
     audioRef.current = audio
-    // Exposed for smoke tests / debugging; harmless in production.
-    ;(window as Window & { __ahtdAudio?: HTMLAudioElement }).__ahtdAudio = audio
+    window.__ahtdAudio = audio
 
     const onTime = () => {
-      if (audio.duration) setProgress(audio.currentTime / audio.duration)
-    }
-    const onEnded = () => {
-      setProgress(0)
-      setCurrent((t) => stepTrack(t, 1))
-      setIsPlaying(true)
+      if (audio.duration) {
+        setProgress(audio.currentTime / audio.duration)
+        setDuration(audio.duration)
+      }
     }
     const onError = () => {
       setError('Preview unavailable')
@@ -137,73 +210,189 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       setIsLoading(false)
     }
     audio.addEventListener('timeupdate', onTime)
-    audio.addEventListener('ended', onEnded)
+    audio.addEventListener('ended', advance)
     audio.addEventListener('error', onError)
     return () => {
       audio.pause()
       audio.removeEventListener('timeupdate', onTime)
-      audio.removeEventListener('ended', onEnded)
+      audio.removeEventListener('ended', advance)
       audio.removeEventListener('error', onError)
       audioRef.current = null
     }
-  }, [])
+  }, [advance])
 
+  /* ---------- YouTube player (lazy, created on first play) ---------- */
+  const getYT = useCallback((): Promise<YTPlayer> => {
+    if (ytRef.current) return Promise.resolve(ytRef.current)
+    if (ytCreating.current) return ytCreating.current
+    ytCreating.current = loadYouTubeApi().then(
+      (YT) =>
+        new Promise<YTPlayer>((resolve) => {
+          let host = document.getElementById('yt-engine')
+          if (!host) {
+            host = document.createElement('div')
+            host.id = 'yt-engine'
+            // Must stay rendered (not display:none) or playback is throttled/blocked.
+            host.style.cssText =
+              'position:fixed;bottom:0;left:0;width:1px;height:1px;opacity:0.01;pointer-events:none;overflow:hidden;z-index:-1'
+            document.body.appendChild(host)
+          }
+          const inner = document.createElement('div')
+          host.appendChild(inner)
+          const player = new YT.Player(inner, {
+            width: '1',
+            height: '1',
+            host: 'https://www.youtube-nocookie.com',
+            playerVars: {
+              autoplay: 0,
+              controls: 0,
+              disablekb: 1,
+              fs: 0,
+              rel: 0,
+              playsinline: 1,
+              iv_load_policy: 3,
+              origin: window.location.origin,
+            },
+            events: {
+              onReady: () => {
+                ytRef.current = player
+                window.__ahtdYT = player
+                if (mutedRef.current) player.mute()
+                resolve(player)
+              },
+              onStateChange: (e: { data: number }) => {
+                const S = YT.PlayerState
+                if (e.data === S.ENDED) advance()
+                else if (e.data === S.PLAYING) {
+                  setIsLoading(false)
+                  setError(null)
+                  setDuration(player.getDuration())
+                } else if (e.data === S.BUFFERING) setIsLoading(true)
+              },
+              onError: () => {
+                // 2/5/100/101/150 — bad id, removed, or embedding disabled. Fall back to preview.
+                const id = currentRef.current.id
+                ytFailed.current.add(id)
+                loadedKey.current = null
+                setFallbackTick((n) => n + 1)
+              },
+            },
+          })
+        }),
+    )
+    ytCreating.current.catch(() => {
+      ytCreating.current = null
+    })
+    return ytCreating.current
+  }, [advance])
+
+  /* ---------- progress polling for YouTube ---------- */
+  useEffect(() => {
+    if (engine !== 'youtube' || !isPlaying) return
+    const id = window.setInterval(() => {
+      const p = ytRef.current
+      if (!p) return
+      const d = p.getDuration()
+      if (d > 0) {
+        setProgress(p.getCurrentTime() / d)
+        setDuration(d)
+      }
+    }, 500)
+    return () => window.clearInterval(id)
+  }, [engine, isPlaying])
+
+  /* ---------- mute ---------- */
   useEffect(() => {
     if (audioRef.current) audioRef.current.muted = muted
+    const p = ytRef.current
+    if (p) (muted ? p.mute : p.unMute).call(p)
   }, [muted])
 
-  // Load the preview when the track changes; play/pause when isPlaying changes.
+  /* ---------- core sync: track / isPlaying → engines ---------- */
   useEffect(() => {
-    const audio = audioRef.current
-    if (!audio) return
     let cancelled = false
+    const audio = audioRef.current
+    const track = current
+    const useYouTube = !!track.youtubeId && !ytFailed.current.has(track.id)
 
-    async function sync(el: HTMLAudioElement) {
-      if (loadedTrackId.current !== current.id) {
-        el.pause()
+    async function syncYouTube(videoId: string) {
+      // Silence the other engine.
+      audio?.pause()
+      const key = `yt:${track.id}`
+      let player: YTPlayer
+      try {
+        setIsLoading(true)
+        player = await getYT()
+      } catch {
+        if (cancelled) return
+        ytFailed.current.add(track.id)
+        setFallbackTick((n) => n + 1)
+        return
+      }
+      if (cancelled) return
+      setEngine('youtube')
+      setError(null)
+      if (loadedKey.current !== key) {
+        loadedKey.current = key
+        setProgress(0)
+        if (isPlayingRef.current) player.loadVideoById(videoId)
+        else {
+          player.cueVideoById(videoId)
+          setIsLoading(false)
+        }
+        return
+      }
+      if (isPlayingRef.current) player.playVideo()
+      else {
+        player.pauseVideo()
+        setIsLoading(false)
+      }
+    }
+
+    async function syncPreview() {
+      if (!audio) return
+      ytRef.current?.pauseVideo()
+      const key = `pv:${track.id}`
+      if (loadedKey.current !== key) {
+        audio.pause()
         setProgress(0)
         setError(null)
         setIsLoading(true)
-        const src = await fetchPreview(current)
+        const src = await fetchPreview(track)
         if (cancelled) return
         setIsLoading(false)
-        loadedTrackId.current = current.id
+        loadedKey.current = key
         if (!src) {
-          el.removeAttribute('src')
-          // No preview for this one — tell the user and move on to the next track
-          // (bounded, so a run of misses can't loop forever).
+          audio.removeAttribute('src')
+          setEngine('none')
           if (isPlayingRef.current && skipStreak.current < 3) {
             skipStreak.current += 1
-            setError('No preview — skipping…')
-            skipTimer.current = window.setTimeout(() => {
-              setCurrent((t) => stepTrack(t, 1))
-            }, 900)
+            setError('Not available — skipping…')
+            skipTimer.current = window.setTimeout(() => setCurrent((t) => stepTrack(t, 1)), 900)
           } else {
             skipStreak.current = 0
-            setError('Preview unavailable')
+            setError('Not available here')
             setIsPlaying(false)
           }
           return
         }
         skipStreak.current = 0
-        el.src = src
+        audio.src = src
       }
-
-      if (!el.src) return
-
+      setEngine('preview')
+      if (!audio.src) return
       if (isPlayingRef.current) {
         try {
-          await el.play()
+          await audio.play()
         } catch {
-          // Autoplay blocked or load aborted — reflect reality in the UI.
           if (!cancelled) setIsPlaying(false)
         }
-      } else {
-        el.pause()
-      }
+      } else audio.pause()
     }
 
-    void sync(audio)
+    if (useYouTube) void syncYouTube(track.youtubeId as string)
+    else void syncPreview()
+
     return () => {
       cancelled = true
       if (skipTimer.current) {
@@ -211,8 +400,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         skipTimer.current = null
       }
     }
-  }, [current, isPlaying])
+  }, [current, isPlaying, fallbackTick, getYT])
 
+  /* ---------- public actions ---------- */
   const play = useCallback((track: Track) => {
     setCurrent(track)
     setIsPlaying(true)
@@ -220,6 +410,19 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const toggle = useCallback(() => setIsPlaying((p) => !p), [])
   const toggleMute = useCallback(() => setMuted((m) => !m), [])
+
+  const seek = useCallback(
+    (fraction: number) => {
+      const f = Math.min(1, Math.max(0, fraction))
+      if (engine === 'youtube' && ytRef.current) {
+        ytRef.current.seekTo(f * ytRef.current.getDuration(), true)
+      } else if (engine === 'preview' && audioRef.current?.duration) {
+        audioRef.current.currentTime = f * audioRef.current.duration
+      }
+      setProgress(f)
+    },
+    [engine],
+  )
 
   const step = useCallback((direction: 1 | -1) => {
     setCurrent((track) => stepTrack(track, direction))
@@ -257,17 +460,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       if (e.code === 'Space') {
         e.preventDefault()
         toggle()
-      } else if (e.key === 'ArrowRight') {
-        next()
-      } else if (e.key === 'ArrowLeft') {
-        prev()
-      } else if (e.key.toLowerCase() === 'r') {
-        surpriseMe()
-      } else if (e.key.toLowerCase() === 'f') {
-        toggleFavorite(current.id)
-      } else if (e.key.toLowerCase() === 'm') {
-        toggleMute()
-      }
+      } else if (e.key === 'ArrowRight') next()
+      else if (e.key === 'ArrowLeft') prev()
+      else if (e.key.toLowerCase() === 'r') surpriseMe()
+      else if (e.key.toLowerCase() === 'f') toggleFavorite(current.id)
+      else if (e.key.toLowerCase() === 'm') toggleMute()
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
@@ -281,14 +478,17 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       isPlaying,
       isLoading,
       error,
+      engine,
       muted,
       progress,
+      duration,
       favorites,
       activeEra,
       accent,
       play,
       toggle,
       toggleMute,
+      seek,
       next,
       prev,
       surpriseMe,
@@ -302,14 +502,17 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       isPlaying,
       isLoading,
       error,
+      engine,
       muted,
       progress,
+      duration,
       favorites,
       activeEra,
       accent,
       play,
       toggle,
       toggleMute,
+      seek,
       next,
       prev,
       surpriseMe,

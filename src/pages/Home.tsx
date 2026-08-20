@@ -60,7 +60,7 @@ export default function Home() {
         <p className="font-mono-meta mt-6 text-[11px] text-white/30">
           fan-made. not affiliated with The Weeknd, XO, or Republic Records.
           <br />
-          all songs link out to Spotify / YouTube — nothing is hosted here.
+          songs stream from The Weeknd’s official YouTube uploads — nothing is hosted here.
         </p>
       </section>
     </div>

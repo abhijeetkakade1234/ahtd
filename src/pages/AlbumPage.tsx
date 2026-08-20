@@ -100,7 +100,7 @@ export default function AlbumPage() {
                   {albumIsPlaying ? 'Pause' : 'Play album'}
                 </button>
                 <span className="font-mono-meta text-[10px] text-white/35">
-                  {albumTracks.length} tracks here · 30s previews
+                  {albumTracks.length} tracks here · full songs via YouTube
                 </span>
               </div>
             </motion.div>
@@ -153,7 +153,7 @@ export default function AlbumPage() {
         <SongList
           tracks={albumTracks}
           heading="Tracklist"
-          subheading="click any track — previews play in the bar below"
+          subheading="click any track — plays in the bar below"
         />
 
         {/* Prev / next */}

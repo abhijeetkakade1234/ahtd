@@ -106,7 +106,7 @@ export default function VibePage() {
                 >
                   <Shuffle size={13} /> Shuffle
                 </button>
-                <span className="font-mono-meta text-[10px] text-white/35">30s previews</span>
+                <span className="font-mono-meta text-[10px] text-white/35">full songs via YouTube</span>
               </div>
             </motion.div>
           </div>

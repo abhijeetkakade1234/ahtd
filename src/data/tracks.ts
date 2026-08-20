@@ -6,16 +6,94 @@ export type Track = {
   era: string
   vibes: string[]
   artwork: string
+  youtubeId?: string
   spotifyUrl?: string
   youtubeUrl?: string
   youtubeMusicUrl?: string
+}
+
+// Official uploads on The Weeknd's YouTube channel, keyed by title.
+const youtubeIds: Record<string, string> = {
+  'High For This': 'sX9DgavXiN4',
+  'Wicked Games': 'o9PuAm7d0PA',
+  'The Morning': 'uac4q389yaM',
+  'What You Need': 'jwItX1w8fUo',
+  'The Knowing': 'WsdmtOYtxNk',
+  'Thursday': '0Suprl56Owg',
+  'Life Of The Party': 'BwtfpXm8r9s',
+  'The Birds Pt. 1': 'askRYYhNOSk',
+  'Montreal': '8J1YWrFywvs',
+  'D.D.': 'UT0EiORz_LQ',
+  'Heaven Or Las Vegas': 'Kh3_Mn1wncE',
+  'Kiss Land': 'Wq6V9YpE1aE',
+  'Belong To The World': 'lYO77zNhWl4',
+  'Wanderlust': 'vlrC-y1I3go',
+  'Live For': 'GLr0usOC2_k',
+  'Pretty': 'HxilwT1sKSo',
+  'Real Life': 'EjlLdjzE7dg',
+  'Often': 'JPIhUaONiLU',
+  'The Hills': 'yzTuBuRdAyA',
+  "Can't Feel My Face": 'dqt8Z1k0oWQ',
+  'In The Night': '9CbQl98JEbE',
+  'As You Are': '8CWy_-afIpY',
+  'Starboy': 'Rif-RTvmmss',
+  'Party Monster': 'j9Hije4z6O4',
+  'False Alarm': '7uf8xkknCxQ',
+  'Reminder': 'h_VCgsWLmY4',
+  "Rockin'": 'Nox2RGWOOdE',
+  'Secrets': 'nh3Nc2XsdM0',
+  'True Colors': 'VQ5XQYpx2mg',
+  'I Feel It Coming': '5v1TOFULOWA',
+  'Call Out My Name': 'rsEne1ZiQrk',
+  'Try Me': 'y08R20KflNM',
+  'Wasted Times': 'R0rKB_bsUNg',
+  'I Was Never There': 'OlStmta0Vh4',
+  'Hurt You': 'wKDU5pXhf5o',
+  'Privilege': 'JcVDXHeD59c',
+  'Alone Again': 'JH398xAYpZA',
+  'Too Late': 'nl71vFvVOvw',
+  'Hardest To Love': 'pM3nIOYF2W8',
+  'Scared To Live': 'MzsU_sn2aIE',
+  'Snowchild': 'G0JKdFjWkLA',
+  'Escape From LA': 'vsARlcGW0jE',
+  'Heartless': '-uj9b9JCIJM',
+  'Faith': 'RcS_8-a-sMg',
+  'Blinding Lights': 'fHI8X4OXluQ',
+  'In Your Eyes': 'E3QiD99jPAg',
+  'Save Your Tears': 'u6lihZAcy4s',
+  'After Hours': 'ygTZZpVkmKg',
+  'Until I Bleed Out': 'iv1_FOdJ5s0',
+  'Dawn FM': 'w8eFZoOcYKc',
+  'Gasoline': '0T4UykXuJnI',
+  'How Do I Make You Love Me?': 'IB_FP_rEih4',
+  'Take My Breath': '-ZuS0p2qRYo',
+  'Sacrifice': 'E6zblNbGXA4',
+  'Out Of Time': 'kxgj5af8zg4',
+  'Here We Go... Again': '_WMkhkbF6js',
+  'Best Friends': 'jkEzNvdKGeA',
+  'Is There Someone Else?': 'i4ZuseKFBF0',
+  'Starry Eyes': 'kDGyiXAMJAk',
+  "Don't Break My Heart": 'PHFWp5s-KNQ',
+  'Less Than Zero': 'LKsgDcckur0',
+  'Phantom Regret By Jim': 'vCOXTEzfoJ4',
+  'Wake Me Up': 'QNGCMgvcbpA',
+  'Cry For Me': 'ljxYE-aJD3A',
+  'Enjoy The Show': 'b9jHP7XhMDg',
+  'Baptized In Fear': 'WH7L9e07uSQ',
+  'Open Hearts': 'll6sBa3Dafs',
+  'Timeless': 'mX19AV35PhI',
+  'Niagara Falls': 'HxWx5UuznGI',
+  'São Paulo': 'AQ5NlI-SJR0',
+  'Hurry Up Tomorrow': 'GT8ornYrDEs',
 }
 
 function links(title: string) {
   const q = encodeURIComponent(`The Weeknd ${title}`)
   return {
     spotifyUrl: `https://open.spotify.com/search/${q}`,
-    youtubeUrl: `https://www.youtube.com/results?search_query=${q}`,
+    youtubeUrl: youtubeIds[title]
+      ? `https://www.youtube.com/watch?v=${youtubeIds[title]}`
+      : `https://www.youtube.com/results?search_query=${q}`,
     youtubeMusicUrl: `https://music.youtube.com/search?q=${q}`,
   }
 }
@@ -138,5 +216,6 @@ export const tracks: Track[] = seeds.map((s, i) => ({
   era: s.era,
   vibes: s.vibes,
   artwork: albumArtwork[s.album] ?? '/albums/after-hours.png',
+  youtubeId: youtubeIds[s.title],
   ...links(s.title),
 }))

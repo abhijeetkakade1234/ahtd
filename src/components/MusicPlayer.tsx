@@ -8,14 +8,23 @@ const sourceLinks = [
   { key: 'youtubeMusicUrl' as const, label: 'YT Music' },
 ]
 
+function fmt(sec: number) {
+  const m = Math.floor(sec / 60)
+  const s = Math.floor(sec % 60)
+  return `${m}:${String(s).padStart(2, '0')}`
+}
+
 export default function MusicPlayer() {
   const {
     current,
     isPlaying,
     isLoading,
     error,
+    engine,
     muted,
     progress,
+    duration,
+    seek,
     toggle,
     toggleMute,
     next,
@@ -36,8 +45,15 @@ export default function MusicPlayer() {
       transition={{ delay: 0.3, duration: 0.6 }}
     >
       <div
-        className="h-[2px] w-full overflow-hidden bg-white/5"
+        className="group/seek h-[3px] w-full cursor-pointer overflow-hidden bg-white/5 transition-[height] hover:h-[6px]"
         style={{ boxShadow: isPlaying ? `0 0 8px ${accent}` : 'none' }}
+        onClick={(e) => {
+          const r = e.currentTarget.getBoundingClientRect()
+          seek((e.clientX - r.left) / r.width)
+        }}
+        role="slider"
+        aria-label="Seek"
+        aria-valuenow={Math.round(progress * 100)}
       >
         {isLoading ? (
           <motion.div
@@ -67,11 +83,17 @@ export default function MusicPlayer() {
             </p>
             <p className="truncate text-[10px] text-white/40">
               {error ? (
-                <span className="text-[#c9862f]">{error} · open on Spotify / YouTube →</span>
+                <span className="text-[#c9862f]">{error}</span>
               ) : isLoading ? (
-                'Loading preview…'
+                'Loading…'
               ) : (
-                <>The Weeknd · {current.album} · 30s preview</>
+                <>
+                  The Weeknd · {current.album}
+                  {engine === 'preview' && ' · 30s preview'}
+                  {engine === 'youtube' && duration > 0 && (
+                    <> · {fmt(progress * duration)} / {fmt(duration)}</>
+                  )}
+                </>
               )}
             </p>
           </div>
