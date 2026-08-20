@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ArrowUpRight } from 'lucide-react'
-import { guests, ytThumb } from '../data/guests'
+import { guestPoster, guests } from '../data/guests'
 
 export default function TourFamily() {
   return (
@@ -33,7 +33,7 @@ export default function TourFamily() {
                 style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)' }}
               >
                 <img
-                  src={ytThumb(g.heroVideoId)}
+                  src={guestPoster(g)}
                   alt={g.name}
                   loading="lazy"
                   className="h-full w-full object-cover opacity-80 grayscale-[30%] transition-all duration-700 group-hover:scale-105 group-hover:opacity-100 group-hover:grayscale-0"

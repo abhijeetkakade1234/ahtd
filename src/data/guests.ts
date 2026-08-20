@@ -14,6 +14,10 @@ export type Guest = {
   legs: string
   accent: string
   heroVideoId: string
+  /** Optional self-hosted clip (mp4 in /public) used instead of the YouTube hero. */
+  heroVideo?: string
+  /** Poster/card image; defaults to the YouTube thumbnail. */
+  heroPoster?: string
   heroCaption: string
   bio: string[]
   songs: GuestSong[]
@@ -21,6 +25,10 @@ export type Guest = {
 
 export const ytThumb = (id: string, size: 'hq' | 'maxres' = 'hq') =>
   `https://img.youtube.com/vi/${id}/${size === 'maxres' ? 'maxresdefault' : 'hqdefault'}.jpg`
+
+/** Card / poster image for a guest. */
+export const guestPoster = (g: Pick<Guest, 'heroVideoId' | 'heroPoster'>, size: 'hq' | 'maxres' = 'hq') =>
+  g.heroPoster ?? ytThumb(g.heroVideoId, size)
 
 export const guests: Guest[] = [
   {
@@ -87,14 +95,52 @@ export const guests: Guest[] = [
     role: 'Opening act',
     legs: 'North America 2022 · Europe 2023',
     accent: '#c62828',
-    heroVideoId: 'N70DRo8_WwA',
-    heroCaption: 'Odd Look feat. The Weeknd',
+    heroVideoId: 'tOJ-NJIlK6Y',
+    heroCaption: 'Odd Look (Prince 85 Remix) · After Hours Til Dawn live version',
     bio: [
       'If After Hours sounds like a night drive, Kavinsky is why. The French producer’s Nightcall — the Drive soundtrack — is the blueprint for the whole red-jacket era, and Abel has said as much.',
       'They first worked together in 2013 on Odd Look, a Weeknd verse over a Kavinsky synth line that predates After Hours by seven years. Bringing him out as the opener for the 2022 and 2023 legs was Abel showing the receipts.',
     ],
     songs: [
       { title: 'Odd Look', youtubeId: 'N70DRo8_WwA', year: 2013, credit: 'Kavinsky feat. The Weeknd' },
+      { title: 'Odd Look (Prince 85 Remix · live version)', youtubeId: 'tOJ-NJIlK6Y', year: 2026, credit: 'The Weeknd & Kavinsky · Prince 85' },
+    ],
+  },
+  {
+    slug: 'prince-85',
+    name: 'Prince 85',
+    role: 'Opening set · the tour’s remixer',
+    legs: 'Europe 2026 · Manchester, Frankfurt, Warsaw…',
+    accent: '#7a3cff',
+    heroVideoId: 'vh_9a_P7R6Q',
+    heroCaption: 'Prince 85 · opening night, Etihad Stadium, Manchester 2026',
+    bio: [
+      'The first sound you hear when the stadium lights drop in 2026. Prince 85 opens the European run with a solo set, then his fingerprints stay on the show all night — the live versions of Odd Look and Adaptation that fans keep ripping are his remixes.',
+      'A French producer out of the same synthwave lineage as Kavinsky, which is why the Odd Look rework lands: it’s the 2013 original stretched into a six-minute stadium build that the crowd treats like a new single.',
+    ],
+    songs: [
+      { title: 'Odd Look (Prince 85 Remix · live version)', youtubeId: 'tOJ-NJIlK6Y', year: 2026, credit: 'The Weeknd & Kavinsky · Prince 85' },
+      { title: 'Adaptation (Prince 85 Remix · live version)', youtubeId: 'vG_UHPJ15CM', year: 2026, credit: 'The Weeknd · Prince 85' },
+      { title: 'Electronic Talk', youtubeId: 'kXg5busMXfA', year: 2024, credit: 'Prince 85' },
+    ],
+  },
+  {
+    slug: 'skepta',
+    name: 'Skepta',
+    role: 'Special guest',
+    legs: 'Europe 2026 · London',
+    accent: '#e0e0e0',
+    heroVideoId: '68JQmKitwZc',
+    heroCaption: 'Shutdown · London',
+    bio: [
+      'London’s own, on the London dates. Skepta walked out on the European stadium run in 2026 — the grime godfather on the After Hours stage, a full-circle moment for a city that has treated every Weeknd Wembley night like a homecoming.',
+      'No official record with Abel yet, but the overlap is all over the family: he’s on Carti’s TOXIC, and the whole Boy Better Know era runs parallel to the Trilogy years — two underground scenes that went stadium-sized at the same time.',
+    ],
+    songs: [
+      { title: 'TOXIC', youtubeId: 'U6jeOBSGI6Q', year: 2025, credit: 'Playboi Carti with Skepta' },
+      { title: 'Shutdown', youtubeId: '68JQmKitwZc', year: 2015, credit: 'Skepta' },
+      { title: 'Man', youtubeId: 'sOhxPhqzMwg', year: 2016, credit: 'Skepta' },
+      { title: 'No Security', youtubeId: 'f6suaDGWmOo', year: 2019, credit: 'Skepta' },
     ],
   },
   {

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowUp, Pause, Play, Volume2, VolumeX, X } from 'lucide-react'
-import { guestBySlug, guestTracks, guests, ytThumb } from '../data/guests'
+import { guestBySlug, guestPoster, guestTracks, guests } from '../data/guests'
 import { usePlayer } from '../hooks/usePlayer'
 import SongList from '../components/SongList'
 
@@ -140,7 +140,7 @@ export default function GuestPage() {
       <section ref={heroRef} className="relative h-[78vh] min-h-[520px] w-full overflow-hidden bg-black">
         {/* Poster behind the iframe while it boots */}
         <img
-          src={ytThumb(guest.heroVideoId, 'maxres')}
+          src={guestPoster(guest, 'maxres')}
           alt=""
           className="pointer-events-none absolute inset-0 h-full w-full object-cover"
         />
@@ -152,18 +152,35 @@ export default function GuestPage() {
               : 'pointer-events-none absolute inset-0 overflow-hidden'
           }
         >
-          <iframe
-            key={`${guest.slug}-${heroMuted ? 'm' : 'u'}`}
-            title={guest.heroCaption}
-            src={heroSrc(guest.heroVideoId, heroMuted)}
-            allow="autoplay; encrypted-media; picture-in-picture"
-            referrerPolicy="strict-origin-when-cross-origin"
-            className={
-              showDock
-                ? 'pointer-events-none absolute inset-0 h-full w-full'
-                : 'absolute left-1/2 top-1/2 h-[56.25vw] min-h-full w-[177.78vh] min-w-full -translate-x-1/2 -translate-y-1/2 scale-[1.15]'
-            }
-          />
+          {guest.heroVideo ? (
+            <video
+              key={guest.slug}
+              src={guest.heroVideo}
+              poster={guestPoster(guest, 'maxres')}
+              autoPlay
+              loop
+              playsInline
+              muted={heroMuted}
+              className={
+                showDock
+                  ? 'pointer-events-none absolute inset-0 h-full w-full object-cover'
+                  : 'absolute inset-0 h-full w-full object-cover'
+              }
+            />
+          ) : (
+            <iframe
+              key={`${guest.slug}-${heroMuted ? 'm' : 'u'}`}
+              title={guest.heroCaption}
+              src={heroSrc(guest.heroVideoId, heroMuted)}
+              allow="autoplay; encrypted-media; picture-in-picture"
+              referrerPolicy="strict-origin-when-cross-origin"
+              className={
+                showDock
+                  ? 'pointer-events-none absolute inset-0 h-full w-full'
+                  : 'absolute left-1/2 top-1/2 h-[56.25vw] min-h-full w-[177.78vh] min-w-full -translate-x-1/2 -translate-y-1/2 scale-[1.15]'
+              }
+            />
+          )}
           {showDock && (
             <div className="absolute inset-x-0 top-0 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent p-2">
               <p className="font-mono-meta truncate pl-1 text-[10px] text-white/70">
@@ -306,7 +323,7 @@ export default function GuestPage() {
             >
               <div className="relative aspect-[4/5] overflow-hidden rounded-sm">
                 <img
-                  src={ytThumb(g.heroVideoId)}
+                  src={guestPoster(g)}
                   alt=""
                   loading="lazy"
                   className="h-full w-full object-cover opacity-70 transition-all duration-500 group-hover:scale-105 group-hover:opacity-100"
