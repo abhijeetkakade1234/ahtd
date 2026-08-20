@@ -17,7 +17,12 @@ export default function Home() {
 
   const filtered = useMemo(() => {
     if (activeEra) return tracks.filter((t) => t.era === activeEra)
-    return tracks.slice(0, 12)
+    // One or two defining tracks per album as the starting point.
+    const picks = [
+      'Wicked Games', 'The Zone', 'D.D.', 'Kiss Land', 'The Hills', 'Starboy', 'Call Out My Name',
+      'Blinding Lights', 'After Hours', 'Less Than Zero', 'Timeless', 'Hurry Up Tomorrow',
+    ]
+    return picks.map((t) => tracks.find((x) => x.title === t)).filter((t): t is (typeof tracks)[number] => !!t)
   }, [activeEra])
 
   const heading = useMemo(

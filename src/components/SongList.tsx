@@ -74,8 +74,15 @@ export default function SongList({ tracks, heading, subheading }: Props) {
                   >
                     {track.title}
                   </p>
-                  <p className="font-mono-meta mt-1 truncate text-[11px] text-white/40">
-                    {track.album} · {track.year}
+                  <p className="font-mono-meta mt-1 flex items-center gap-2 truncate text-[11px] text-white/40">
+                    <span className="truncate">
+                      {track.album} · {track.year}
+                    </span>
+                    {track.deluxe && (
+                      <span className="shrink-0 rounded-sm border border-[#c9862f]/40 px-1.5 py-[1px] text-[9px] uppercase tracking-[0.15em] text-[#c9862f]/80">
+                        deluxe
+                      </span>
+                    )}
                   </p>
                 </div>
               </div>
