@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
-import { Pause, Play, SkipBack, SkipForward, Volume2, VolumeX, Heart } from 'lucide-react'
-import { usePlayer } from '../hooks/usePlayer'
+import { Pause, Play, SkipBack, SkipForward, Volume2, VolumeX, Heart, PictureInPicture2 } from 'lucide-react'
+import { supportsPopOut, usePlayer } from '../hooks/usePlayer'
 
 const sourceLinks = [
   { key: 'spotifyUrl' as const, label: 'Spotify' },
@@ -25,6 +25,8 @@ export default function MusicPlayer() {
     progress,
     duration,
     seek,
+    popOut,
+    pipActive,
     toggle,
     toggleMute,
     next,
@@ -124,6 +126,18 @@ export default function MusicPlayer() {
         </div>
 
         <div className="hidden items-center gap-4 lg:flex">
+          {supportsPopOut && engine === 'youtube' && (
+            <button
+              type="button"
+              onClick={() => void popOut()}
+              title={pipActive ? 'Playing in pop-out window' : 'Pop out — keeps playing over other tabs & apps'}
+              className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.15em] transition-colors hover:text-white"
+              style={{ color: pipActive ? accent : 'rgba(255,255,255,0.5)' }}
+            >
+              <PictureInPicture2 size={14} />
+              <span className="hidden xl:inline">{pipActive ? 'Popped out' : 'Pop out'}</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={toggleMute}

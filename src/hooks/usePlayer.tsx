@@ -30,6 +30,9 @@ type PlayerState = {
   toggle: () => void
   toggleMute: () => void
   seek: (fraction: number) => void
+  /** Document Picture-in-Picture: pop the video out so it keeps playing over other tabs/apps. */
+  popOut: () => Promise<void>
+  pipActive: boolean
   next: () => void
   prev: () => void
   surpriseMe: () => Track
@@ -60,8 +63,8 @@ function stepTrack(track: Track, direction: 1 | -1) {
 /* ------------------------------------------------------------------ */
 
 type YTPlayer = {
-  loadVideoById: (id: string) => void
-  cueVideoById: (id: string) => void
+  loadVideoById: (id: string | { videoId: string; startSeconds?: number }) => void
+  cueVideoById: (id: string | { videoId: string; startSeconds?: number }) => void
   playVideo: () => void
   pauseVideo: () => void
   seekTo: (seconds: number, allowSeekAhead: boolean) => void
@@ -82,8 +85,14 @@ declare global {
     onYouTubeIframeAPIReady?: () => void
     __ahtdAudio?: HTMLAudioElement
     __ahtdYT?: YTPlayer
+    documentPictureInPicture?: {
+      requestWindow: (opts?: { width?: number; height?: number }) => Promise<Window>
+      window: Window | null
+    }
   }
 }
+
+export const supportsPopOut = typeof window !== 'undefined' && 'documentPictureInPicture' in window
 
 let ytReady: Promise<YTNamespace> | null = null
 function loadYouTubeApi(): Promise<YTNamespace> {
@@ -190,6 +199,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   mutedRef.current = muted
   const skipStreak = useRef(0)
   const skipTimer = useRef<number | null>(null)
+  // Document PiP: a second YT player living in the pop-out window. While it exists it is
+  // the active engine and the hidden main player stays paused.
+  const pipRef = useRef<YTPlayer | null>(null)
+  const pipWinRef = useRef<Window | null>(null)
+  const [pipActive, setPipActive] = useState(false)
+  const pendingStart = useRef<number | null>(null) // seconds to resume at after a hand-over
 
   const advance = useCallback(() => {
     setProgress(0)
@@ -226,6 +241,112 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       audioRef.current = null
     }
   }, [advance])
+
+  /* ---------- shared event wiring for any YT player (main or pop-out) ---------- */
+  const ytEvents = useCallback(
+    (YT: YTNamespace, getPlayer: () => YTPlayer | null) => ({
+      onStateChange: (e: { data: number }) => {
+        const S = YT.PlayerState
+        const p = getPlayer()
+        if (e.data === S.ENDED) advance()
+        else if (e.data === S.PLAYING) {
+          setIsLoading(false)
+          setError(null)
+          if (p) setDuration(p.getDuration())
+        } else if (e.data === S.BUFFERING) setIsLoading(true)
+      },
+      onError: () => {
+        // 2/5/100/101/150 — bad id, removed, or embedding disabled. Fall back to preview.
+        ytFailed.current.add(currentRef.current.id)
+        loadedKey.current = null
+        setFallbackTick((n) => n + 1)
+      },
+    }),
+    [advance],
+  )
+
+  /* ---------- Document Picture-in-Picture pop-out ---------- */
+  const popOut = useCallback(async () => {
+    const dpip = window.documentPictureInPicture
+    if (!dpip) return
+    if (pipWinRef.current) {
+      pipWinRef.current.focus()
+      return
+    }
+    const track = currentRef.current
+    if (!track.youtubeId) return
+    const main = ytRef.current
+    const startAt = main ? main.getCurrentTime() : 0
+
+    const win = await dpip.requestWindow({ width: 420, height: 236 })
+    pipWinRef.current = win
+    const doc = win.document
+    doc.title = `${track.title} — The Weeknd`
+    doc.body.style.cssText = 'margin:0;background:#060505;overflow:hidden'
+    const host = doc.createElement('div')
+    host.style.cssText = 'position:fixed;inset:0'
+    doc.body.appendChild(host)
+
+    // The IFrame API must be loaded inside the pop-out document.
+    const YT = await new Promise<YTNamespace>((resolve, reject) => {
+      const w = win as Window & { YT?: YTNamespace; onYouTubeIframeAPIReady?: () => void }
+      w.onYouTubeIframeAPIReady = () => w.YT && resolve(w.YT)
+      const s = doc.createElement('script')
+      s.src = 'https://www.youtube.com/iframe_api'
+      s.onerror = () => reject(new Error('YouTube API failed in pop-out'))
+      doc.head.appendChild(s)
+      win.setTimeout(() => reject(new Error('pop-out timeout')), 15000)
+    }).catch((err) => {
+      win.close()
+      pipWinRef.current = null
+      throw err
+    })
+
+    main?.pauseVideo()
+    let player: YTPlayer | null = null
+    player = new YT.Player(host, {
+      width: '100%',
+      height: '100%',
+      videoId: track.youtubeId,
+      host: 'https://www.youtube-nocookie.com',
+      playerVars: {
+        autoplay: 1,
+        start: Math.floor(startAt),
+        controls: 1,
+        rel: 0,
+        playsinline: 1,
+        iv_load_policy: 3,
+        origin: window.location.origin,
+      },
+      events: {
+        onReady: () => {
+          pipRef.current = player
+          if (mutedRef.current) player?.mute()
+          loadedKey.current = `yt:${track.id}`
+          setPipActive(true)
+          setEngine('youtube')
+          if (isPlayingRef.current) player?.playVideo()
+        },
+        ...ytEvents(YT, () => player),
+      },
+    })
+
+    // When the pop-out closes, hand playback back to the hidden main player at the same spot.
+    win.addEventListener('pagehide', () => {
+      let t = 0
+      try {
+        t = player?.getCurrentTime() ?? 0
+      } catch {
+        /* window already gone */
+      }
+      pipRef.current = null
+      pipWinRef.current = null
+      setPipActive(false)
+      pendingStart.current = t
+      loadedKey.current = null
+      setFallbackTick((n) => n + 1) // re-run the sync effect against the main player
+    })
+  }, [ytEvents])
 
   /* ---------- YouTube player (lazy, created on first play) ---------- */
   const getYT = useCallback((): Promise<YTPlayer> => {
@@ -266,22 +387,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
                 if (mutedRef.current) player.mute()
                 resolve(player)
               },
-              onStateChange: (e: { data: number }) => {
-                const S = YT.PlayerState
-                if (e.data === S.ENDED) advance()
-                else if (e.data === S.PLAYING) {
-                  setIsLoading(false)
-                  setError(null)
-                  setDuration(player.getDuration())
-                } else if (e.data === S.BUFFERING) setIsLoading(true)
-              },
-              onError: () => {
-                // 2/5/100/101/150 — bad id, removed, or embedding disabled. Fall back to preview.
-                const id = currentRef.current.id
-                ytFailed.current.add(id)
-                loadedKey.current = null
-                setFallbackTick((n) => n + 1)
-              },
+              ...ytEvents(YT, () => (pipRef.current ? null : player)),
             },
           })
         }),
@@ -290,13 +396,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       ytCreating.current = null
     })
     return ytCreating.current
-  }, [advance])
+  }, [ytEvents])
 
   /* ---------- progress polling for YouTube ---------- */
   useEffect(() => {
     if (engine !== 'youtube' || !isPlaying) return
     const id = window.setInterval(() => {
-      const p = ytRef.current
+      const p = pipRef.current ?? ytRef.current
       if (!p) return
       const d = p.getDuration()
       if (d > 0) {
@@ -310,8 +416,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   /* ---------- mute ---------- */
   useEffect(() => {
     if (audioRef.current) audioRef.current.muted = muted
-    const p = ytRef.current
-    if (p) (muted ? p.mute : p.unMute).call(p)
+    for (const p of [ytRef.current, pipRef.current]) {
+      if (p) (muted ? p.mute : p.unMute).call(p)
+    }
   }, [muted])
 
   /* ---------- core sync: track / isPlaying → engines ---------- */
@@ -328,7 +435,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       let player: YTPlayer
       try {
         setIsLoading(true)
-        player = await getYT()
+        player = pipRef.current ?? (await getYT())
       } catch {
         if (cancelled) return
         ytFailed.current.add(track.id)
@@ -340,10 +447,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       setError(null)
       if (loadedKey.current !== key) {
         loadedKey.current = key
+        const startSeconds = pendingStart.current ?? 0
+        pendingStart.current = null
         setProgress(0)
-        if (isPlayingRef.current) player.loadVideoById(videoId)
+        if (isPlayingRef.current) player.loadVideoById({ videoId, startSeconds })
         else {
-          player.cueVideoById(videoId)
+          player.cueVideoById({ videoId, startSeconds })
           setIsLoading(false)
         }
         return
@@ -421,8 +530,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const seek = useCallback(
     (fraction: number) => {
       const f = Math.min(1, Math.max(0, fraction))
-      if (engine === 'youtube' && ytRef.current) {
-        ytRef.current.seekTo(f * ytRef.current.getDuration(), true)
+      const yt = pipRef.current ?? ytRef.current
+      if (engine === 'youtube' && yt) {
+        yt.seekTo(f * yt.getDuration(), true)
       } else if (engine === 'preview' && audioRef.current?.duration) {
         audioRef.current.currentTime = f * audioRef.current.duration
       }
@@ -496,6 +606,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       toggle,
       toggleMute,
       seek,
+      popOut,
+      pipActive,
       next,
       prev,
       surpriseMe,
@@ -520,6 +632,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       toggle,
       toggleMute,
       seek,
+      popOut,
+      pipActive,
       next,
       prev,
       surpriseMe,
