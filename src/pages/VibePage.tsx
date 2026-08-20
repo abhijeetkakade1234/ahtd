@@ -68,7 +68,7 @@ export default function VibePage() {
               className="relative aspect-square w-full max-w-[360px] overflow-hidden rounded-sm"
               style={{ boxShadow: `0 40px 120px -30px ${accent}80` }}
             >
-              <img src={vibe.artwork} alt="" className="h-full w-full object-cover" />
+              <img loading="eager" decoding="async" fetchPriority="high" src={vibe.artwork} alt="" className="h-full w-full object-cover" />
               <div className="absolute inset-0" style={{ background: vibe.bg, opacity: 0.6 }} />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
               <span className="font-nav absolute bottom-5 left-5 text-2xl uppercase tracking-[0.2em] text-white">
@@ -128,7 +128,7 @@ export default function VibePage() {
                   onMouseEnter={(e) => (e.currentTarget.style.borderColor = v.accent)}
                   onMouseLeave={(e) => (e.currentTarget.style.borderColor = '')}
                 >
-                  <img src={v.artwork} alt="" className="h-6 w-6 rounded-full object-cover" />
+                  <img loading="lazy" decoding="async" src={v.artwork} alt="" className="h-6 w-6 rounded-full object-cover" />
                   {v.name}
                 </Link>
               ))}

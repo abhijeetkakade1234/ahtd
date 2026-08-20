@@ -139,7 +139,7 @@ export default function GuestPage() {
       {/* Video hero */}
       <section ref={heroRef} className="relative h-[78vh] min-h-[520px] w-full overflow-hidden bg-black">
         {/* Poster behind the iframe while it boots */}
-        <img
+        <img loading="eager" decoding="async" fetchPriority="high"
           src={guestPoster(guest, 'maxres')}
           alt=""
           className="pointer-events-none absolute inset-0 h-full w-full object-cover"

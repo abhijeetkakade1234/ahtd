@@ -14,10 +14,11 @@ export default function AlbumPage() {
   const { current, isPlaying, play, toggle } = usePlayer()
 
   const era = useMemo(() => eras.find((e) => e.id === album?.era), [album])
-  const albumTracks = useMemo(
-    () => (album ? tracks.filter((t) => t.album === album.title) : []),
-    [album],
-  )
+  const albumTracks = useMemo(() => {
+    if (!album) return []
+    const names = album.albumNames ?? [album.title]
+    return tracks.filter((t) => names.includes(t.album))
+  }, [album])
 
   const index = albums.findIndex((a) => a.slug === slug)
   const prevAlbum = index > 0 ? albums[index - 1] : null
@@ -71,7 +72,7 @@ export default function AlbumPage() {
               className="relative aspect-square w-full max-w-[420px] overflow-hidden rounded-sm"
               style={{ boxShadow: `0 40px 120px -30px ${accent}80` }}
             >
-              <img src={album.artwork} alt={album.title} className="h-full w-full object-cover" />
+              <img loading="eager" decoding="async" fetchPriority="high" src={album.artwork} alt={album.title} className="h-full w-full object-cover" />
             </motion.div>
 
             <motion.div
@@ -161,7 +162,7 @@ export default function AlbumPage() {
           {prevAlbum ? (
             <Link to={`/album/${prevAlbum.slug}`} className="group flex items-center gap-4 text-left">
               <ArrowLeft size={14} className="text-white/40 transition-colors group-hover:text-white" />
-              <img src={prevAlbum.artwork} alt="" className="h-12 w-12 rounded-sm object-cover opacity-70 group-hover:opacity-100" />
+              <img loading="lazy" decoding="async" src={prevAlbum.artwork} alt="" className="h-12 w-12 rounded-sm object-cover opacity-70 group-hover:opacity-100" />
               <div>
                 <p className="font-mono-meta text-[10px] uppercase tracking-[0.2em] text-white/35">previous</p>
                 <p className="font-serif-editorial text-base text-white/85 md:text-lg">{prevAlbum.title}</p>
@@ -176,7 +177,7 @@ export default function AlbumPage() {
                 <p className="font-mono-meta text-[10px] uppercase tracking-[0.2em] text-white/35">next</p>
                 <p className="font-serif-editorial text-base text-white/85 md:text-lg">{nextAlbum.title}</p>
               </div>
-              <img src={nextAlbum.artwork} alt="" className="h-12 w-12 rounded-sm object-cover opacity-70 group-hover:opacity-100" />
+              <img loading="lazy" decoding="async" src={nextAlbum.artwork} alt="" className="h-12 w-12 rounded-sm object-cover opacity-70 group-hover:opacity-100" />
               <ArrowRight size={14} className="text-white/40 transition-colors group-hover:text-white" />
             </Link>
           ) : (

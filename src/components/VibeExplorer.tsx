@@ -26,7 +26,7 @@ export default function VibeExplorer() {
                 }
                 onMouseLeave={(e) => (e.currentTarget.style.boxShadow = 'inset 0 0 0 1px rgba(255,255,255,0.08)')}
               >
-                <img
+                <img loading="lazy" decoding="async"
                   src={vibe.artwork}
                   alt=""
                   className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"

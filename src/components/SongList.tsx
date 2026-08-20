@@ -96,7 +96,7 @@ export default function SongList({ tracks, heading, subheading }: Props) {
                       exit={{ opacity: 0, x: 8 }}
                       className="hidden items-center gap-3 md:flex"
                     >
-                      <img
+                      <img loading="lazy" decoding="async"
                         src={track.artwork}
                         alt=""
                         className="h-10 w-10 rounded-sm object-cover"

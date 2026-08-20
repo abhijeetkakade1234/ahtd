@@ -41,7 +41,7 @@ export default function EraTimeline({ activeEra, onSelect }: Props) {
                 className="relative block h-24 w-32 overflow-hidden rounded-sm md:h-32 md:w-44"
                 style={{ opacity: active ? 1 : 0.55 }}
               >
-                <img
+                <img loading="lazy" decoding="async"
                   src={era.artwork}
                   alt=""
                   className="h-full w-full object-cover"
@@ -71,7 +71,7 @@ export default function EraTimeline({ activeEra, onSelect }: Props) {
                     onMouseEnter={(e) => (e.currentTarget.style.borderColor = era.accent)}
                     onMouseLeave={(e) => (e.currentTarget.style.borderColor = '')}
                   >
-                    <img src={album.artwork} alt="" className="h-5 w-5 rounded-full object-cover" />
+                    <img loading="lazy" decoding="async" src={album.artwork} alt="" className="h-5 w-5 rounded-full object-cover" />
                     {albumsForEra(era.id).length > 1 ? album.title : 'Open album'}
                     <ArrowUpRight size={10} className="opacity-50 group-hover/chip:opacity-100" />
                   </Link>

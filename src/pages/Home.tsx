@@ -5,6 +5,7 @@ import VibeExplorer from '../components/VibeExplorer'
 import EraTimeline from '../components/EraTimeline'
 import SongList from '../components/SongList'
 import TourFamily from '../components/TourFamily'
+import LazyVideo from '../components/LazyVideo'
 import { tracks } from '../data/tracks'
 import { eras } from '../data/eras'
 import { usePlayer } from '../hooks/usePlayer'
@@ -60,15 +61,9 @@ export default function Home() {
 
       <section id="about" className="relative mb-16 overflow-hidden px-5 py-28 md:mb-24 md:px-14 md:py-40">
         {/* Muted looping clip behind the sign-off */}
-        <video
+        <LazyVideo
           src="/about.mp4"
           poster="/about-poster.jpg"
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="metadata"
-          aria-hidden
           className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-60"
         />
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#060505] via-[#060505]/55 to-[#060505]" />

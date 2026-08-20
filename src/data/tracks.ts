@@ -178,16 +178,16 @@ function links(title: string) {
 }
 
 const albumArtwork: Record<string, string> = {
-  'House Of Balloons': '/albums/house-of-balloons.png',
-  Thursday: '/albums/thursday.png',
-  'Echoes Of Silence': '/albums/echoes-of-silence.png',
-  'Kiss Land': '/albums/kiss-land.png',
-  'Beauty Behind The Madness': '/albums/beauty-behind-the-madness.png',
-  Starboy: '/albums/starboy.png',
-  'My Dear Melancholy,': '/albums/my-dear-melancholy.jpg',
-  'After Hours': '/albums/after-hours.png',
-  'Dawn FM': '/albums/dawn-fm.png',
-  'Hurry Up Tomorrow': '/albums/hurry-up-tomorrow.png',
+  'House Of Balloons': '/albums/house-of-balloons.webp',
+  Thursday: '/albums/thursday.webp',
+  'Echoes Of Silence': '/albums/echoes-of-silence.webp',
+  'Kiss Land': '/albums/kiss-land.webp',
+  'Beauty Behind The Madness': '/albums/beauty-behind-the-madness.webp',
+  Starboy: '/albums/starboy.webp',
+  'My Dear Melancholy,': '/albums/my-dear-melancholy.webp',
+  'After Hours': '/albums/after-hours.webp',
+  'Dawn FM': '/albums/dawn-fm.webp',
+  'Hurry Up Tomorrow': '/albums/hurry-up-tomorrow.webp',
 }
 
 type Seed = {
@@ -377,7 +377,7 @@ export const tracks: Track[] = seeds.map((s, i) => ({
   year: s.year,
   era: s.era,
   vibes: s.vibes,
-  artwork: albumArtwork[s.album] ?? '/albums/after-hours.png',
+  artwork: albumArtwork[s.album] ?? '/albums/after-hours.webp',
   youtubeId: youtubeIds[s.title],
   deluxe: s.deluxe,
   ...links(s.title),

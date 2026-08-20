@@ -16,7 +16,7 @@ export const eras: Era[] = [
     accent: '#8a8a8a',
     bg: 'radial-gradient(ellipse at 30% 20%, #2a2a2a 0%, #050505 70%)',
     mood: 'black · grain · dirty film texture · deep shadows',
-    artwork: '/albums/house-of-balloons.png',
+    artwork: '/albums/house-of-balloons.webp',
   },
   {
     id: 'kiss-land',
@@ -25,7 +25,7 @@ export const eras: Era[] = [
     accent: '#4f7a5a',
     bg: 'radial-gradient(ellipse at 70% 30%, #14251a 0%, #030503 75%)',
     mood: 'green · dark · strange · industrial',
-    artwork: '/albums/kiss-land.png',
+    artwork: '/albums/kiss-land.webp',
   },
   {
     id: 'beauty-behind-the-madness',
@@ -34,7 +34,7 @@ export const eras: Era[] = [
     accent: '#8a1620',
     bg: 'radial-gradient(ellipse at 50% 40%, #2a0508 0%, #050202 75%)',
     mood: 'crimson · cinematic red-black · moody',
-    artwork: '/albums/beauty-behind-the-madness.png',
+    artwork: '/albums/beauty-behind-the-madness.webp',
   },
   {
     id: 'starboy',
@@ -43,7 +43,7 @@ export const eras: Era[] = [
     accent: '#c62828',
     bg: 'linear-gradient(160deg, #0a0a0a 0%, #1c1c1c 55%, #2a0a0a 100%)',
     mood: 'black · chrome · red',
-    artwork: '/albums/starboy.png',
+    artwork: '/albums/starboy.webp',
   },
   {
     id: 'my-dear-melancholy',
@@ -52,7 +52,7 @@ export const eras: Era[] = [
     accent: '#5c6b7a',
     bg: 'radial-gradient(ellipse at 40% 60%, #0e141a 0%, #030405 75%)',
     mood: 'icy blue-grey · cold · minimal · sorrow',
-    artwork: '/albums/my-dear-melancholy.jpg',
+    artwork: '/albums/my-dear-melancholy.webp',
   },
   {
     id: 'after-hours',
@@ -61,7 +61,7 @@ export const eras: Era[] = [
     accent: '#b30f22',
     bg: 'radial-gradient(ellipse at 50% 30%, #3a0509 0%, #050001 75%)',
     mood: 'deep red · night · neon · city',
-    artwork: '/albums/after-hours.png',
+    artwork: '/albums/after-hours.webp',
   },
   {
     id: 'dawn-fm',
@@ -70,7 +70,7 @@ export const eras: Era[] = [
     accent: '#c9a86a',
     bg: 'linear-gradient(160deg, #1a1a1e 0%, #302c26 55%, #050505 100%)',
     mood: 'chrome · radio · white light · dreamlike',
-    artwork: '/albums/dawn-fm.png',
+    artwork: '/albums/dawn-fm.webp',
   },
   {
     id: 'hurry-up-tomorrow',
@@ -79,6 +79,6 @@ export const eras: Era[] = [
     accent: '#d4af37',
     bg: 'radial-gradient(ellipse at 50% 50%, #241a05 0%, #030201 75%)',
     mood: 'surreal · futuristic · dark',
-    artwork: '/albums/hurry-up-tomorrow.png',
+    artwork: '/albums/hurry-up-tomorrow.webp',
   },
 ]

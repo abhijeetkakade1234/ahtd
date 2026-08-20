@@ -713,6 +713,55 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const accent = useMemo(() => eraAccent(current.era), [current.era])
 
+  /* ---------- Media Session: OS lock-screen / notification controls ---------- */
+  useEffect(() => {
+    const ms = navigator.mediaSession
+    if (!ms) return
+    const art = current.artwork.startsWith('http')
+      ? current.artwork
+      : window.location.origin + current.artwork
+    ms.metadata = new MediaMetadata({
+      title: current.title,
+      artist: 'The Weeknd',
+      album: current.album,
+      artwork: [
+        { src: art, sizes: '512x512', type: art.endsWith('.webp') ? 'image/webp' : 'image/jpeg' },
+      ],
+    })
+    ms.setActionHandler('play', () => setIsPlaying(true))
+    ms.setActionHandler('pause', () => setIsPlaying(false))
+    ms.setActionHandler('previoustrack', () => prev())
+    ms.setActionHandler('nexttrack', () => next())
+    ms.setActionHandler('seekforward', () => seek(Math.min(1, progress + 0.05)))
+    ms.setActionHandler('seekbackward', () => seek(Math.max(0, progress - 0.05)))
+    try {
+      ms.setActionHandler('seekto', (d: MediaSessionActionDetails) => {
+        if (d.seekTime != null && duration) seek(d.seekTime / duration)
+      })
+    } catch {
+      /* seekto unsupported */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current, next, prev, seek, duration])
+
+  useEffect(() => {
+    if (navigator.mediaSession) navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused'
+  }, [isPlaying])
+
+  // Coming back to the tab: if it was playing, nudge the engine back to life
+  // (mobile browsers pause backgrounded iframes; this resumes on return).
+  useEffect(() => {
+    function onVisible() {
+      if (document.visibilityState !== 'visible') return
+      if (isPlayingRef.current) {
+        ;(pipRef.current ?? ytRef.current)?.playVideo?.()
+        void audioRef.current?.play?.().catch(() => {})
+      }
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [])
+
   const value = useMemo<PlayerState>(
     () => ({
       current,

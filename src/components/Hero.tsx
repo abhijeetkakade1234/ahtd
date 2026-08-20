@@ -2,7 +2,7 @@ import { useRef } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
 
-const HERO_IMAGE = '/Futuristic Arena and Golden Android Statue.png'
+const HERO_IMAGE = '/hero.webp'
 
 const dustParticles = Array.from({ length: 18 }, (_, i) => ({
   id: i,
@@ -37,6 +37,10 @@ export default function Hero({ onEnter }: { onEnter: () => void }) {
         >
           <img
             src={HERO_IMAGE}
+            srcSet="/hero-960.webp 960w, /hero.webp 1920w"
+            sizes="100vw"
+            fetchPriority="high"
+            decoding="async"
             alt="A massive chrome statue towers over a tiny performer on stage inside a golden-lit stadium"
             className="h-full w-full object-cover object-[center_38%]"
           />
