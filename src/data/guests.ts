@@ -131,7 +131,9 @@ export const guests: Guest[] = [
     legs: 'Europe 2026 · London',
     accent: '#e0e0e0',
     heroVideoId: '68JQmKitwZc',
-    heroCaption: 'Shutdown · London',
+    heroVideo: '/tours/skepta.mp4',
+    heroPoster: '/tours/skepta-poster.jpg',
+    heroCaption: '“I have no competition…” · on the After Hours Til Dawn stage · via @skeptagram',
     bio: [
       'London’s own, on the London dates. Skepta walked out on the European stadium run in 2026 — the grime godfather on the After Hours stage, a full-circle moment for a city that has treated every Weeknd Wembley night like a homecoming.',
       'No official record with Abel yet, but the overlap is all over the family: he’s on Carti’s TOXIC, and the whole Boy Better Know era runs parallel to the Trilogy years — two underground scenes that went stadium-sized at the same time.',
