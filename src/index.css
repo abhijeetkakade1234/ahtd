@@ -16,7 +16,7 @@ body {
   padding: 0;
   background: #060505;
   color: #f2ece4;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 body {

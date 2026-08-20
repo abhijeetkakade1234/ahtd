@@ -90,6 +90,27 @@ export const guests: Guest[] = [
     ],
   },
   {
+    slug: 'future',
+    name: 'Future',
+    role: 'Surprise guest · Low Life',
+    legs: 'Atlanta · Miami 2025',
+    accent: '#2f6f9f',
+    heroVideoId: 'CEo-8Y76ESk',
+    heroCaption: 'Low Life · live in Atlanta 2025',
+    bio: [
+      'Atlanta night, Atlanta guest. Future walked out for Low Life on the 2025 stadium leg — first in his hometown, then again at Hard Rock Stadium in Miami — and the stadium knew every word of a hook Abel has sung alone on this tour for years.',
+      'They’ve been trading verses since 2016: Low Life on EVOL, All I Know closing Starboy, Comin Out Strong on HNDRXX, Double Fantasy as the lead single of the After Hours trilogy’s middle chapter, and Enjoy The Show on Hurry Up Tomorrow. No feature relationship in the catalogue runs longer.',
+    ],
+    songs: [
+      { title: 'Low Life', youtubeId: 'K_9tX4eHztY', year: 2016, credit: 'Future feat. The Weeknd' },
+      { title: 'Low Life (Live in Atlanta 2025)', youtubeId: 'CEo-8Y76ESk', year: 2025, credit: 'The Weeknd & Future' },
+      { title: 'Enjoy The Show', youtubeId: 'b9jHP7XhMDg', year: 2025, credit: 'The Weeknd & Future' },
+      { title: 'Double Fantasy', youtubeId: 'DQnBal7mVtE', year: 2023, credit: 'The Weeknd feat. Future' },
+      { title: 'All I Know', youtubeId: '4iSEJB1KJ0w', year: 2016, credit: 'The Weeknd feat. Future' },
+      { title: 'Comin Out Strong', youtubeId: 'uhUlubcBoDA', year: 2017, credit: 'Future feat. The Weeknd' },
+    ],
+  },
+  {
     slug: 'kavinsky',
     name: 'Kavinsky',
     role: 'Opening act',

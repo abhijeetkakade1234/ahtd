@@ -33,6 +33,9 @@ type PlayerState = {
   /** Document Picture-in-Picture: pop the video out so it keeps playing over other tabs/apps. */
   popOut: () => Promise<void>
   pipActive: boolean
+  shuffle: boolean
+  toggleShuffle: () => void
+  setShuffle: (on: boolean) => void
   next: () => void
   prev: () => void
   surpriseMe: () => Track
@@ -56,6 +59,70 @@ function stepTrack(track: Track, direction: 1 | -1) {
   const index = list.findIndex((t) => t.id === track.id)
   if (index === -1) return list[0]
   return list[(index + direction + list.length) % list.length]
+}
+
+/* ------------------------------------------------------------------ */
+/* Smart shuffle                                                       */
+/* ------------------------------------------------------------------ */
+/**
+ * Not a coin flip. Every candidate is scored against the track that just played:
+ *  - no repeats until the whole pool has been heard once
+ *  - flows: prefers a shared mood (vibe) with what's playing
+ *  - avoids the same album back-to-back, gently prefers staying in the era
+ *  - favourites come round more often, the last few plays come round less
+ *  - every ~6th pick is a deliberate "era jump" so it never gets samey
+ * Then a weighted draw, so it's still surprising.
+ */
+type ShuffleCtx = {
+  played: Set<string>
+  history: Track[]
+  favorites: Set<string>
+  sinceJump: number
+}
+
+function pickSmart(from: Track | null, pool: Track[], ctx: ShuffleCtx, forceJump = false): Track | null {
+  if (!pool.length) return null
+  let candidates = pool.filter((t) => !ctx.played.has(t.id) && t.id !== from?.id)
+  if (!candidates.length) {
+    ctx.played.clear()
+    candidates = pool.filter((t) => t.id !== from?.id)
+    if (!candidates.length) candidates = pool
+  }
+  const jump = forceJump || ctx.sinceJump >= 5 + Math.floor(Math.random() * 3)
+  const recent = new Set(ctx.history.slice(-8).map((t) => t.id))
+
+  const weighted = candidates.map((t) => {
+    let w = 1
+    if (from) {
+      const sharesVibe = t.vibes.some((v) => from.vibes.includes(v))
+      const sameEra = t.era === from.era
+      const sameAlbum = t.album === from.album
+      if (jump) {
+        w += sameEra ? -0.7 : 2.2
+      } else {
+        if (sharesVibe) w += 1.6
+        if (sameEra) w += 0.4
+        if (sameAlbum) w -= 0.9
+      }
+    }
+    if (ctx.favorites.has(t.id)) w += 1.2
+    if (recent.has(t.id)) w -= 0.8
+    if (t.deluxe) w -= 0.3 // bonus cuts a little rarer
+    return { t, w: Math.max(0.05, w) }
+  })
+
+  const total = weighted.reduce((s, c) => s + c.w, 0)
+  let r = Math.random() * total
+  let pick = weighted[weighted.length - 1].t
+  for (const c of weighted) {
+    r -= c.w
+    if (r <= 0) {
+      pick = c.t
+      break
+    }
+  }
+  ctx.sinceJump = jump ? 0 : ctx.sinceJump + 1
+  return pick
 }
 
 /* ------------------------------------------------------------------ */
@@ -183,6 +250,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [favorites, setFavorites] = useState<Set<string>>(new Set())
   const [activeEra, setActiveEra] = useState<string | null>(null)
   const [isGlitching, setIsGlitching] = useState(false)
+  const [shuffle, setShuffleState] = useState(false)
+  const shuffleRef = useRef(false)
+  shuffleRef.current = shuffle
+  const favoritesRef = useRef<Set<string>>(new Set())
+  const shuffleCtx = useRef<ShuffleCtx>({ played: new Set(), history: [], favorites: new Set(), sinceJump: 0 })
   // Bumped when a YouTube video fails so the sync effect re-runs with the fallback.
   const [fallbackTick, setFallbackTick] = useState(0)
 
@@ -206,11 +278,25 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [pipActive, setPipActive] = useState(false)
   const pendingStart = useRef<number | null>(null) // seconds to resume at after a hand-over
 
+  /** Next track: smart pick when shuffle is on, otherwise the next row in the list. */
+  const nextTrack = useCallback((from: Track, forceJump = false): Track => {
+    if (!shuffleRef.current && !forceJump) return stepTrack(from, 1)
+    const ctx = shuffleCtx.current
+    ctx.favorites = favoritesRef.current
+    const pool = queue.length ? queue : tracks
+    const pick = pickSmart(from, pool, ctx, forceJump) ?? stepTrack(from, 1)
+    ctx.played.add(from.id)
+    ctx.played.add(pick.id)
+    ctx.history.push(from)
+    if (ctx.history.length > 200) ctx.history.shift()
+    return pick
+  }, [])
+
   const advance = useCallback(() => {
     setProgress(0)
-    setCurrent((t) => stepTrack(t, 1))
+    setCurrent(nextTrack(currentRef.current))
     setIsPlaying(true)
-  }, [])
+  }, [nextTrack])
 
   /* ---------- <audio> for previews ---------- */
   useEffect(() => {
@@ -541,17 +627,54 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     [engine],
   )
 
-  const step = useCallback((direction: 1 | -1) => {
-    setCurrent((track) => stepTrack(track, direction))
+  favoritesRef.current = favorites
+
+  const next = useCallback(() => {
+    setCurrent(nextTrack(currentRef.current))
+    setIsPlaying(true)
+  }, [nextTrack])
+
+  const prev = useCallback(() => {
+    const ctx = shuffleCtx.current
+    if (shuffleRef.current && ctx.history.length) {
+      // Walk back through what actually played, not the list order.
+      const back = ctx.history.pop() as Track
+      ctx.played.delete(currentRef.current.id)
+      setCurrent(back)
+    } else {
+      setCurrent((track) => stepTrack(track, -1))
+    }
     setIsPlaying(true)
   }, [])
 
-  const next = useCallback(() => step(1), [step])
-  const prev = useCallback(() => step(-1), [step])
+  const toggleShuffle = useCallback(() => {
+    setShuffleState((s) => {
+      if (!s) {
+        // Fresh cycle each time shuffle is switched on.
+        shuffleCtx.current.played = new Set([currentRef.current.id])
+        shuffleCtx.current.sinceJump = 0
+      }
+      return !s
+    })
+  }, [])
+  const setShuffle = useCallback((on: boolean) => {
+    setShuffleState((s) => {
+      if (on && !s) {
+        shuffleCtx.current.played = new Set([currentRef.current.id])
+        shuffleCtx.current.sinceJump = 0
+      }
+      return on
+    })
+  }, [])
 
+  // Surprise Me = a forced era jump from the whole catalogue, using the same brain.
   const surpriseMe = useCallback(() => {
     setIsGlitching(true)
-    const pick = tracks[Math.floor(Math.random() * tracks.length)]
+    const ctx = shuffleCtx.current
+    ctx.favorites = favoritesRef.current
+    const pick = pickSmart(currentRef.current, tracks, ctx, true) ?? tracks[0]
+    ctx.played.add(pick.id)
+    ctx.history.push(currentRef.current)
     window.setTimeout(() => {
       setCurrent(pick)
       setIsPlaying(true)
@@ -582,10 +705,11 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       else if (e.key.toLowerCase() === 'r') surpriseMe()
       else if (e.key.toLowerCase() === 'f') toggleFavorite(current.id)
       else if (e.key.toLowerCase() === 'm') toggleMute()
+      else if (e.key.toLowerCase() === 's') toggleShuffle()
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [toggle, next, prev, surpriseMe, toggleFavorite, toggleMute, current.id])
+  }, [toggle, next, prev, surpriseMe, toggleFavorite, toggleMute, toggleShuffle, current.id])
 
   const accent = useMemo(() => eraAccent(current.era), [current.era])
 
@@ -608,6 +732,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       seek,
       popOut,
       pipActive,
+      shuffle,
+      toggleShuffle,
+      setShuffle,
       next,
       prev,
       surpriseMe,
@@ -634,6 +761,9 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       seek,
       popOut,
       pipActive,
+      shuffle,
+      toggleShuffle,
+      setShuffle,
       next,
       prev,
       surpriseMe,

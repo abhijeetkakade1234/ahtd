@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { ArrowUpRight } from 'lucide-react'
 import { eras } from '../data/eras'
 import { albumsForEra } from '../data/albums'
+import HorizontalScroll from './HorizontalScroll'
 
 type Props = {
   activeEra: string | null
@@ -11,13 +12,20 @@ type Props = {
 
 export default function EraTimeline({ activeEra, onSelect }: Props) {
   return (
-    <section id="eras" className="px-5 py-20 md:px-14 md:py-28">
-      <h2 className="font-serif-editorial text-2xl italic text-white/90 md:text-4xl">
-        Every era changed the atmosphere.
-      </h2>
-      <p className="font-mono-meta mt-2 text-xs text-white/40">select an era to shift the room</p>
-
-      <div className="mt-12 flex gap-6 overflow-x-auto pb-6 md:gap-10">
+    <HorizontalScroll
+      id="eras"
+      header={
+        <div>
+          <h2 className="font-serif-editorial text-2xl italic text-white/90 md:text-4xl">
+            Every era changed the atmosphere.
+          </h2>
+          <p className="font-mono-meta mt-2 text-xs text-white/40">
+            select an era to shift the room · open an album for the full story
+          </p>
+        </div>
+      }
+    >
+      <>
         {eras.map((era) => {
           const active = activeEra === era.id
           return (
@@ -72,7 +80,7 @@ export default function EraTimeline({ activeEra, onSelect }: Props) {
             </div>
           )
         })}
-      </div>
-    </section>
+      </>
+    </HorizontalScroll>
   )
 }

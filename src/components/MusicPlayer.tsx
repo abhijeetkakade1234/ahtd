@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Pause, Play, SkipBack, SkipForward, Volume2, VolumeX, Heart, PictureInPicture2 } from 'lucide-react'
+import { Pause, Play, SkipBack, SkipForward, Volume2, VolumeX, Heart, PictureInPicture2, Shuffle } from 'lucide-react'
 import { supportsPopOut, usePlayer } from '../hooks/usePlayer'
 
 const sourceLinks = [
@@ -27,6 +27,8 @@ export default function MusicPlayer() {
     seek,
     popOut,
     pipActive,
+    shuffle,
+    toggleShuffle,
     toggle,
     toggleMute,
     next,
@@ -109,6 +111,19 @@ export default function MusicPlayer() {
         </div>
 
         <div className="flex items-center gap-4 md:gap-7">
+          <button
+            type="button"
+            onClick={toggleShuffle}
+            title={shuffle ? 'Smart shuffle on (S)' : 'Smart shuffle (S)'}
+            aria-pressed={shuffle}
+            className="relative transition-colors hover:text-white"
+            style={{ color: shuffle ? accent : 'rgba(255,255,255,0.5)' }}
+          >
+            <Shuffle size={17} />
+            {shuffle && (
+              <span className="absolute -bottom-1.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full" style={{ background: accent }} />
+            )}
+          </button>
           <button type="button" onClick={prev} className="text-white/60 transition-colors hover:text-white">
             <SkipBack size={20} />
           </button>

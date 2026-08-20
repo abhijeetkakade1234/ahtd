@@ -2,18 +2,25 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ArrowUpRight } from 'lucide-react'
 import { guestPoster, guests } from '../data/guests'
+import HorizontalScroll from './HorizontalScroll'
 
 export default function TourFamily() {
   return (
-    <section id="tour" className="px-5 py-20 md:px-14 md:py-28">
-      <h2 className="font-serif-editorial max-w-lg text-2xl italic text-white/90 md:text-4xl">
-        The family on stage.
-      </h2>
-      <p className="font-mono-meta mt-2 text-xs text-white/40">
-        After Hours Til Dawn · 2022 → 2026 · the openers, the guests, the man on the synths
-      </p>
-
-      <div className="mt-14 flex gap-4 overflow-x-auto pb-8 md:gap-6">
+    <HorizontalScroll
+      id="tour"
+      rowClassName="gap-4 md:gap-6"
+      header={
+        <div>
+          <h2 className="font-serif-editorial max-w-lg text-2xl italic text-white/90 md:text-4xl">
+            The family on stage.
+          </h2>
+          <p className="font-mono-meta mt-2 text-xs text-white/40">
+            After Hours Til Dawn · 2022 → 2026 · the openers, the guests, the man on the synths
+          </p>
+        </div>
+      }
+    >
+      <>
         {guests.map((g, i) => (
           <motion.div
             key={g.slug}
@@ -56,7 +63,7 @@ export default function TourFamily() {
             </Link>
           </motion.div>
         ))}
-      </div>
-    </section>
+      </>
+    </HorizontalScroll>
   )
 }

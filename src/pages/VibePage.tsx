@@ -10,7 +10,7 @@ import SongList from '../components/SongList'
 export default function VibePage() {
   const { id = '' } = useParams()
   const vibe = vibes.find((v) => v.id === id)
-  const { current, isPlaying, play, toggle } = usePlayer()
+  const { current, isPlaying, play, toggle, setShuffle } = usePlayer()
 
   const vibeTracks = useMemo(() => (vibe ? tracks.filter((t) => t.vibes.includes(vibe.id)) : []), [vibe])
 
@@ -35,7 +35,8 @@ export default function VibePage() {
   function shuffle() {
     if (!vibeTracks.length) return
     const pool = vibeTracks.filter((t) => t.id !== current.id)
-    play(pool[Math.floor(Math.random() * pool.length)] ?? vibeTracks[0])
+    setShuffle(true)
+    play(pool[Math.floor(Math.random() * pool.length)] ?? vibeTracks[0], vibeTracks)
   }
 
   return (
