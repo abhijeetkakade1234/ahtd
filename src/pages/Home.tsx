@@ -58,11 +58,26 @@ export default function Home() {
 
       <TourFamily />
 
-      <section id="about" className="px-5 py-24 md:px-14 md:py-32">
-        <p className="font-serif-editorial max-w-lg text-xl italic leading-relaxed text-white/70 md:text-2xl">
+      <section id="about" className="relative mb-16 overflow-hidden px-5 py-28 md:mb-24 md:px-14 md:py-40">
+        {/* Muted looping clip behind the sign-off */}
+        <video
+          src="/about.mp4"
+          poster="/about-poster.jpg"
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          aria-hidden
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-60"
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#060505] via-[#060505]/55 to-[#060505]" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#060505]/80 via-transparent to-transparent" />
+
+        <p className="font-serif-editorial relative max-w-lg text-xl italic leading-relaxed text-white/85 md:text-2xl">
           A beautiful little corner of the internet made by someone who really loves The Weeknd.
         </p>
-        <p className="font-mono-meta mt-6 text-[11px] text-white/30">
+        <p className="font-mono-meta relative mt-6 text-[11px] text-white/40">
           fan-made. not affiliated with The Weeknd, XO, or Republic Records.
           <br />
           songs stream from The Weeknd’s official YouTube uploads — nothing is hosted here.
