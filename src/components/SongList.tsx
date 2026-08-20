@@ -55,7 +55,7 @@ export default function SongList({ tracks, heading, subheading }: Props) {
               key={track.id}
               onMouseEnter={() => setHovered(track.id)}
               onMouseLeave={() => setHovered(null)}
-              onClick={() => (isCurrent ? toggle() : play(track))}
+              onClick={() => (isCurrent ? toggle() : play(track, tracks))}
               className="group relative flex cursor-pointer items-center justify-between gap-4 py-4 md:py-6"
               initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}

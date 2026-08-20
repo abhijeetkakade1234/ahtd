@@ -25,7 +25,8 @@ type PlayerState = {
   favorites: Set<string>
   activeEra: string | null
   accent: string
-  play: (track: Track) => void
+  /** Play a track; pass the list it came from so Next/Prev walk that list. */
+  play: (track: Track, queue?: Track[]) => void
   toggle: () => void
   toggleMute: () => void
   seek: (fraction: number) => void
@@ -44,9 +45,14 @@ function eraAccent(eraId: string) {
   return eras.find((e) => e.id === eraId)?.accent ?? '#b30f22'
 }
 
+// The list Next/Prev walk through. Defaults to the full catalogue; set by play().
+let queue: Track[] = tracks
+
 function stepTrack(track: Track, direction: 1 | -1) {
-  const index = tracks.findIndex((t) => t.id === track.id)
-  return tracks[(index + direction + tracks.length) % tracks.length]
+  const list = queue.length ? queue : tracks
+  const index = list.findIndex((t) => t.id === track.id)
+  if (index === -1) return list[0]
+  return list[(index + direction + list.length) % list.length]
 }
 
 /* ------------------------------------------------------------------ */
@@ -403,7 +409,8 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   }, [current, isPlaying, fallbackTick, getYT])
 
   /* ---------- public actions ---------- */
-  const play = useCallback((track: Track) => {
+  const play = useCallback((track: Track, list?: Track[]) => {
+    if (list?.length) queue = list
     setCurrent(track)
     setIsPlaying(true)
   }, [])

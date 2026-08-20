@@ -8,7 +8,7 @@ const links = [
   { id: 'vibes', label: 'Vibes' },
   { id: 'songs', label: 'Songs' },
   { id: 'eras', label: 'Eras' },
-  { id: 'memories', label: 'Memories' },
+  { id: 'tour', label: 'Tour' },
   { id: 'about', label: 'About' },
 ]
 

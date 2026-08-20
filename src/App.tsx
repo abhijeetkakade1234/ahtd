@@ -4,6 +4,7 @@ import { PlayerProvider } from './hooks/usePlayer'
 import Home from './pages/Home'
 import AlbumPage from './pages/AlbumPage'
 import VibePage from './pages/VibePage'
+import GuestPage from './pages/GuestPage'
 import Navigation from './components/Navigation'
 import SurpriseMe from './components/SurpriseMe'
 import MusicPlayer from './components/MusicPlayer'
@@ -27,6 +28,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/album/:slug" element={<AlbumPage />} />
           <Route path="/vibe/:id" element={<VibePage />} />
+          <Route path="/tour/:slug" element={<GuestPage />} />
           <Route path="*" element={<Home />} />
         </Routes>
         <MusicPlayer />

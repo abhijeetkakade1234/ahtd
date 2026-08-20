@@ -4,7 +4,7 @@ import Hero from '../components/Hero'
 import VibeExplorer from '../components/VibeExplorer'
 import EraTimeline from '../components/EraTimeline'
 import SongList from '../components/SongList'
-import MemoryGallery from '../components/MemoryGallery'
+import TourFamily from '../components/TourFamily'
 import { tracks } from '../data/tracks'
 import { eras } from '../data/eras'
 import { usePlayer } from '../hooks/usePlayer'
@@ -51,7 +51,7 @@ export default function Home() {
 
       <EraTimeline activeEra={activeEra} onSelect={setActiveEra} />
 
-      <MemoryGallery />
+      <TourFamily />
 
       <section id="about" className="px-5 py-24 md:px-14 md:py-32">
         <p className="font-serif-editorial max-w-lg text-xl italic leading-relaxed text-white/70 md:text-2xl">
