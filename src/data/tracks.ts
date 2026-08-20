@@ -380,6 +380,5 @@ export const tracks: Track[] = seeds.map((s, i) => ({
   artwork: albumArtwork[s.album] ?? '/albums/after-hours.png',
   youtubeId: youtubeIds[s.title],
   deluxe: s.deluxe,
-  deluxe: s.deluxe,
   ...links(s.title),
 }))
